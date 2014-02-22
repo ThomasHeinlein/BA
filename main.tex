@@ -1,0 +1,223 @@
+\documentclass[a4paper]{article}
+
+% Pakete
+\usepackage[ngerman]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{cancel}
+\usepackage{colortbl}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage[inline]{asymptote}
+\usepackage[dvipsnames]{xcolor}
+
+
+% Makros
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\CC}{\mathbb{C}}
+
+\newcommand{\bbvec}{\left(\begin{array}{ccc}}
+\newcommand{\bsvec}{\left(\begin{array}{cc}}
+\newcommand{\Bbvec}{\left(\begin{array}{cccc}}
+\newcommand{\Bbv}{\left(\begin{array}{cccc}}
+\newcommand{\bsv}{\left(\begin{array}{cc}}
+\newcommand{\bbv}{\left(\begin{array}{ccc}}
+\newcommand{\ebv}{\end{array}\right)}
+\newcommand{\ebvec}{\end{array}\right)}
+\newcommand{\bv}{\left(\begin{array}{c}}
+\newcommand{\ev}{\end{array}\right)}
+\newcommand{\bkm}{\begin{vmatrix}}
+\newcommand{\ekm}{\end{vmatrix}}
+\newcommand{\bma}{\begin{pmatrix}}
+\newcommand{\ema}{\end{pmatrix}}
+\newcommand{\btabelle}{\begin{tabular}{ccc|c}}
+\newcommand{\etabelle}{\end{tabular}}
+
+\newcommand{\bem}{\vspace{0.2cm}\underline{Bemerkung:}\vspace{0.2cm}}
+\newcommand{\platz}{\vspace{0.2cm}}
+\newcommand{\bsp}{\vspace{0.2cm}\underline{Beispiel:}\vspace{0.2cm}}
+\newcommand{\dev}{\vspace{0.2cm}\underline{Definition:}\vspace{0.2cm}}
+\newcommand{\satz}{\vspace{0.2cm}\underline{Satz:}\vspace{0.2cm}}
+\newcommand{\anotheritemi}{$\bullet$\hspace{0.15cm}}
+\newcommand{\anotheritemii}{$\circ$\hspace{0.15cm}}
+\newcommand{\anotheritemiii}{$\cdot$\hspace{0.15cm}}
+\newcommand{\anotheritemiv}{$\ast$\hspace{0.15cm}}
+
+\definecolor{grau}{rgb}{0.8,0.8,0.8}
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  frame=L,
+  xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{purple!40!black},
+  %identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+  emph={%  
+    then, to%
+    },emphstyle={\bfseries\color{green!40!black}}%
+}
+
+\lstset{
+  mathescape,
+  style=customc,
+  breaklines=true,
+  numbers=left,
+  tabsize=4,                                 
+  columns=fixed                             
+}
+
+\begin{document}
+\setlength{\parindent}{0pt} 
+
+
+\tableofcontents
+
+\newpage
+
+\section{Einleitung - Anwengungsbeispiel = Problem der Museumswächter}
+
+\section{Graph und Polygon}
+\subsection{Definition: Graph}
+\subsubsection{Maximal planare Graphen}
+\subsubsection{Dualer Graph}
+\subsection{Definition: Polygon}
+\subsection{Definition: einfaches Polygon}
+
+\section{Datenstrukturen zur Darstellung von Graphen}
+\subsection{Adjazenzmatrix}
+\subsection{Adjazenzliste}
+\subsection{Knotenliste}
+http://de.wikipedia.org/wiki/Polygonnetz
+\subsection{Kantenliste}
+\section{Datenstrukturen zur Speicherung von planaren Graphen der Ebene}
+\subsection{Winged edge Datenstruktur}
+\subsection{Doppelt verkettete Kantenliste}
+\subsubsection{Zweck einer Dcel}
+Eine weitere Möglichkeit einen planaren Graphen in der Ebene Darzustellen, jedoch ohne die vorher genannten Nachteile, ist die doppelt verkettete Kantenliste (engl.: Doubly-connected edge list oder kurz: DCEL).
+
+Die DCEL ist eine Datenstruktur, bestehend aus Knoten, Kanten und Flächen, die es ermöglicht schnell auf zusammenhängende Teile des Graphen, wie eine anliegende Fläche zu einer gegebenen Kante, zurückzugreifen. 
+Um dies zu erreichen werden zu jedem Knoten, jeder Kante und jeder Fläche einige Informationen gespeichert. Später werden wir sehen, das der Speicheraufwand trotzdem linear zur Größe der Eingabe ist. 
+
+\platz
+
+(HIER MÜSSEN KNOTEN KANTEN UND FLÄCHEN SCHON DEFINIERT SEIN)
+
+\platz
+
+Eine Kante enthält eine Referenz auf eine Fläche. Da eine Kante immer zwei anliegende Flächen hat und es schwierig wäre zwischen diesen zu unterscheiden, verwendet man stattdessen gerichtete Halbkanten und speichert zu dieser die linke Fläche ab. Halbkanten haben einen Start- und einen Endpunkt.
+
+
+
+
+
+
+
+\begin{asy}
+settings.outformat="pdf";
+size(10cm,10cm);
+
+
+
+settings.render=0;
+import three;
+
+label("$F1$",(1.9,1.8),NE);
+
+
+
+pair[] vertices;
+vertices.push((1,1)); 
+vertices.push((6,1.5));
+vertices.push((3.5,3));
+vertices.push((2.5,5));
+vertices.push((0,4));
+
+
+path p = (1,1) -- (6,1.5) -- (3.5,3) -- (2.5,5) -- (0,4) --cycle;
+
+draw(p);
+
+fill(p,gray(.85)); 
+
+dot(vertices);
+
+path asd = arc((2,1.5), 0.3, 220, 110);
+
+draw(asd,Arrow(2mm));
+
+draw(Label("$e$",align=N),(1.1,1.1)--(5.7,1.58), black+linewidth(.5mm),Arrow(3mm));
+
+\end{asy}
+
+Weiterhin wird eine Referenz auf die Kante, die bei einer Drehung im Endpunkt gegen den Uhrzeigersinn als nächstes kommt als Nachfolger-Kante gespeichert. Analog wird die Kante, auf die man trifft, wenn man im Uhrzeigersinn im Startpunkt dreht als Vorgänger-Kante bezeichnet, zu welcher auch eine Referenz gespeichert wird. Liegt eine Fläche $f$ links zu eine Halbkante $e$, so liegt $f$ auch links zur Nachfolger- und Vorgänger-Kante von $e$.
+
+Nun ist es mögliche eine Fläche zu traversieren:
+
+\begin{lstlisting}
+void traverseIncidentFace(HalfEdge e){
+
+	HalfEdge save <- e;
+	
+	do{
+		// speichere die Nachfolger-Kante in e
+		e = e.getNext();
+	} while( e != save)
+}
+\end{lstlisting}
+
+
+
+
+
+
+
+\subsubsection{Anwendungsbeispiel}
+\subsubsection{Definition: Dcel}
+\subsubsection{Vorteile für die Triangulation}
+\subsubsection{Implementierung einer Dcel}
+mit Klassendiagramm, Sequenzdiagramm, etc.
+
+
+
+\section{Triangulierung eines simplen Polygons}
+Klassendiagramme wären zuviel an dieser Stelle. Stattdessen baue ich einige Pseudocodes ein.
+
+\subsection{Triangulation in $O(n^2)$ Zeit}
+
+\subsection{Triangulation in $O(n\cdot log(n))$ Zeit}
+\subsubsection{Definition: monotones Polygon}
+\subsubsection{y-Monotonie Algorithmus}
+\subsubsection{Problem: Kollinearität}
+\subsubsection{Problem: Löcher im Polygon}
+
+\subsection{Empirischer Vergleich der beiden Algorithmen - Wann ist welcher Algorithmus besser?}
+\subsection{Ear-Clipping Methode}
+\subsection{Triangulation in $O(n\cdot log^*(n))$ Zeit}
+\subsection{Triangulation in $O(n\cdot log(log(n)))$ Zeit}
+\subsection{Triangulation in $O(n)$ Zeit}
+\subsubsection{Deterministisch}
+\subsubsection{Randomisiert}
+\subsection{Triangulation im 3D-Raum}
+
+
+
+
+\section{Schluss - Geschichte der Triangulation}
+\subsection{16 Jhd. Triangulation zur Kartenerstellung}
+\subsection{17 Jhd. Triangulation zur Berechnung der Krümmung der Erde}
+
+
+
+\end{document}
+
