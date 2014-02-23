@@ -81,9 +81,116 @@
 \setlength{\parindent}{0pt} 
 
 
+\begin{asydef}
+
+path buildPath(pair[] vert){
+
+path p;
+
+for(pair v : vert)
+	p = p -- v;
+
+p = p --cycle;
+
+return p;
+}
+
+pair getPointBetweenLines(pair v0, pair v1, pair v2, real o0, real o1){
+
+
+	pair tmp = ( (v1.x+v2.x)/2,(v1.y+v2.y)/2 );
+
+	pair vec = (tmp.x - v0.x,tmp.y - v0.y);
+	
+	real length = sqrt(vec.x*vec.x + vec.y*vec.y);
+	
+	// normalize vec
+	vec = (vec.x / length, vec.y / length);
+	
+	return ( v0.x+vec.x*o0, v0.y+vec.y*o1 );	
+	
+}
+
+// tried some normalizations
+pair getPointBetweenLines2(pair v0, pair v1, pair v2, real o){
+
+	pair v0v1 = (v1.x-v0.x,v1.y-v0.y);
+	real length = sqrt(v0v1.x*v0v1.x + v0v1.y*v0v1.y);
+	
+	if(length != 0)
+		v0v1 =  scale(1/length)*v0v1;
+	
+	pair v0v2 = (v2.x-v0.x,v2.y-v0.y);
+	length = sqrt(v0v2.x*v0v2.x + v0v2.y*v0v2.y);
+	if(length != 0)
+		v0v2 = scale(1/length)*v0v2;
+
+
+	pair mid = ( (v0v1.x+v0v2.x)/2,(v0v1.y+v0v2.y)/2 );
+	// m is the slope of the line through v0 and tmp
+	pair vec = ((v0.x+mid.x)/2, (v0.y+mid.y)/2);
+	
+	real length = sqrt(vec.x*vec.x + vec.y*vec.y);
+	
+	// normalize vec
+	vec = (vec.x / length, vec.y / length);
+	
+	return ( v0.x+vec.x*o, v0.y+vec.y*o );	
+}
+
+
+path calculateIncidentEdge(pair v0, pair v1, pair v2, pair v3, real o0, real o1, 
+							real o2, real o3){
+
+	pair start = getPointBetweenLines(v0,v1,v2,o0,o1);
+
+	pair end = getPointBetweenLines(v1,v2,v3,o2,o3);
+	
+	return ( start--end );
+}
+
+
+
+
+pair getPointBetweenLinesForOuterEdge(pair v0, pair v1, pair v2, real o0, real o1){
+
+	pair tmpv1 = reflect(v0,v2)*v1;		
+
+	pair tmp = ( (tmpv1.x+v2.x)/2,(tmpv1.y+v2.y)/2 );
+
+	pair vec = (tmp.x - v0.x,tmp.y - v0.y);
+	
+	real length = sqrt(vec.x*vec.x + vec.y*vec.y);
+	
+	// normalize vec
+	vec = (vec.x / length, vec.y / length);
+	
+	return ( v0.x+vec.x*o0, v0.y+vec.y*o1 );	
+	
+}
+
+
+
+path calculateOuterIncidentEdge(pair v0, pair v1, pair v2, pair v3, real o0, real o1, 
+							real o2, real o3){
+
+	pair start = getPointBetweenLinesForOuterEdge(v0,v1,v2,o0,o1);
+
+	pair end = getPointBetweenLinesForOuterEdge(v1,v2,v3,o2,o3);
+	
+	return ( start--end );
+}
+
+
+\end{asydef}
+
+
+
+
 \tableofcontents
 
 \newpage
+
 
 \section{Einleitung - Anwengungsbeispiel = Problem der Museumswächter}
 
@@ -103,23 +210,10 @@ http://de.wikipedia.org/wiki/Polygonnetz
 \section{Datenstrukturen zur Speicherung von planaren Graphen der Ebene}
 \subsection{Winged edge Datenstruktur}
 \subsection{Doppelt verkettete Kantenliste}
-\subsubsection{Zweck einer Dcel}
+\subsubsection{Zweck einer Dcel}\label{Inhalt_Dcel}
 Eine weitere Möglichkeit einen planaren Graphen in der Ebene Darzustellen, jedoch ohne die vorher genannten Nachteile, ist die doppelt verkettete Kantenliste (engl.: Doubly-connected edge list oder kurz: DCEL).
 
-Die DCEL ist eine Datenstruktur, bestehend aus Knoten, Kanten und Flächen, die es ermöglicht schnell auf zusammenhängende Teile des Graphen, wie eine anliegende Fläche zu einer gegebenen Kante, zurückzugreifen. 
-Um dies zu erreichen werden zu jedem Knoten, jeder Kante und jeder Fläche einige Informationen gespeichert. Später werden wir sehen, das der Speicheraufwand trotzdem linear zur Größe der Eingabe ist. 
-
-\platz
-
-(HIER MÜSSEN KNOTEN KANTEN UND FLÄCHEN SCHON DEFINIERT SEIN)
-
-\platz
-
-Eine Kante enthält eine Referenz auf eine Fläche. Da eine Kante immer zwei anliegende Flächen hat und es schwierig wäre zwischen diesen zu unterscheiden, verwendet man stattdessen gerichtete Halbkanten und speichert zu dieser die linke Fläche ab. Halbkanten haben einen Start- und einen Endpunkt.
-
-
-
-
+Die DCEL ist eine Datenstruktur, bestehend aus Knoten, Kanten und Flächen. Ein Knoten ist ein Punkt im Raum, eine Kante ist eine geradlinige Verbindungen zwischen zwei Knoten. Von Kantenzügen beschränkte Bereiche heißen Flächen.
 
 
 
@@ -127,13 +221,47 @@ Eine Kante enthält eine Referenz auf eine Fläche. Da eine Kante immer zwei anl
 settings.outformat="pdf";
 size(10cm,10cm);
 
-
-
 settings.render=0;
 import three;
 
-label("$F1$",(1.9,1.8),NE);
 
+pair[] v;
+v.push((0,0)); 
+v.push((2,1));
+v.push((1.5,2.3));
+v.push((1,0.9));
+v.push((-0.5,1));
+
+path p = buildPath(v);
+
+draw(p,linewidth(1));
+
+fill(p,gray(.85)); 
+
+dot(v,linewidth(5));
+
+draw(L=Label("Knoten", position=Relative(0)),(2.3,0.8){up}..{left}(2.03,1),Arrow);
+
+pair mid = ((v[1].x+v[2].x)/2, (v[1].y+v[2].y)/2);
+
+draw(L=Label("Kante", position=Relative(0)),(mid.x+0.3,mid.y-0.2){up}..{left}mid,Arrow);
+
+label("Fläche",(0.3,0.6),Z);
+
+\end{asy}
+
+Die DCEL ermöglicht es schnell auf zusammenhängende Teile des Graphen, wie eine anliegende Fläche zu einer gegebenen Kante, zurückzugreifen. 
+Um dies zu erreichen werden zu jedem Knoten, jeder Kante und jeder Fläche einige Referenzen gespeichert. Später werden wir sehen, das der Speicheraufwand trotzdem linear zur Größe der Eingabe ist. 
+
+
+Eine Kante $\vec{e}$ enthält eine Referenz auf eine Fläche $f$. Da eine Kante immer zwei anliegende Flächen hat und es schwierig wäre zwischen diesen zu unterscheiden, verwendet man stattdessen gerichtete Halbkanten und speichert zu dieser die \textit{linke} Fläche ab. 
+
+\begin{asy}
+settings.outformat="pdf";
+size(10cm,10cm);
+
+settings.render=0;
+import three;
 
 
 pair[] vertices;
@@ -143,24 +271,31 @@ vertices.push((3.5,3));
 vertices.push((2.5,5));
 vertices.push((0,4));
 
+draw((1,1) -- (-0.5,-0.5));
+draw((6,1.5) -- (8,1.5));
+draw((3.5,3) -- (7,4.5));
+draw((2.5,5) -- (4,6.5));
+draw((0,4) -- (-2,5));
 
-path p = (1,1) -- (6,1.5) -- (3.5,3) -- (2.5,5) -- (0,4) --cycle;
+path p = buildPath(vertices);
 
 draw(p);
 
 fill(p,gray(.85)); 
 
-dot(vertices);
+dot(vertices, linewidth(5));
 
-path asd = arc((2,1.5), 0.3, 220, 110);
+path pointer = arc((2,1.5), 0.3, 220, 110);
 
-draw(asd,Arrow(2mm));
+draw(L=Label("$f$", position=Relative(1)), align=NE,pointer,Arrow(2mm));
 
-draw(Label("$e$",align=N),(1.1,1.1)--(5.7,1.58), black+linewidth(.5mm),Arrow(3mm));
+draw(Label("$\vec{e}$",align=N),(1.1,1.1)--(5.7,1.58), linewidth(.35mm),Arrow(3mm));
 
 \end{asy}
 
-Weiterhin wird eine Referenz auf die Kante, die bei einer Drehung im Endpunkt gegen den Uhrzeigersinn als nächstes kommt als Nachfolger-Kante gespeichert. Analog wird die Kante, auf die man trifft, wenn man im Uhrzeigersinn im Startpunkt dreht als Vorgänger-Kante bezeichnet, zu welcher auch eine Referenz gespeichert wird. Liegt eine Fläche $f$ links zu eine Halbkante $e$, so liegt $f$ auch links zur Nachfolger- und Vorgänger-Kante von $e$.
+Anzumerken ist hier, dass es auf eine Fläche gibt die nicht von einem Kantenzug beschränkt wird. Allerdings gibt es nur eine solche unbegrenzte Fläche.
+
+Weiterhin haben Halbkanten einen Start- und einen Endpunkt. Es wird eine Referenz auf die Kante, die bei einer Drehung im Endpunkt gegen den Uhrzeigersinn als nächstes erreicht wird als Nachfolger-Kante gespeichert. Analog wird die Kante, auf die man trifft, wenn man im Uhrzeigersinn im Startpunkt dreht als Vorgänger-Kante bezeichnet, zu welcher auch eine Referenz gespeichert wird. Liegt eine Fläche $f$ links zu eine Halbkante $\vec{e}$, so liegt $f$ auch links zur Nachfolger- und Vorgänger-Kante von $\vec{e}$.
 
 Nun ist es mögliche eine Fläche zu traversieren:
 
@@ -176,15 +311,148 @@ void traverseIncidentFace(HalfEdge e){
 }
 \end{lstlisting}
 
+Da nun gerichtete Halbkanten verwendet werden, wird zusätzlich eine Referenz zur Zwillingskante, also der Kante deren Startpunkt der Endpunkt von $e$ ist und deren Endpunkt der Startpunkt von $e$ ist. Zusätzlich speichert man noch den Startknoten bzw. Ursprung einer Kante. Der Endknoten muss nicht zusätzlich gespeichert werden, da dieser der Ursprung des Zwillings ist.
+
+\begin{lstlisting}
+vertex getEndPoint(HalfEdge e){
+	return e.getTwin().getOrigin();
+}
+\end{lstlisting}
+
+Eine Fläche $f$ ist definiert durch eine Halbkante $\vec{e}$, wobei $f$ die \textit{links} an $\vec{e}$ anliegende Fläche ist. $f$ liegt somit innerhalb eines Kantenzugs. Die Definition eines planaren Graphen in der Ebene schließt aber nicht aus, dass sich in diesem Löcher befinden. Das Loch einer Fläche $f$ ist ein von den äußeren Kanten disjunkter Kantenzug. Da eine Fläche beliebig viele Löcher haben kann, muss eine Fläche eine Referenz auf eine Menge an Löchern haben. Für den Fall, dass eine Fläche keine Löcher besitzt ist diese Menge leer. Ein Loch einer Fläche $f$ kann mittels einer Halbkante gespeichert werden, zu der das innere von $f$ \textit{links} liegt.
 
 
+\begin{asy}
+settings.outformat="pdf";
+size(10cm,10cm);
+
+settings.render=0;
+import three;
+
+
+pair[] v;
+v.push((0,0)); 
+v.push((7,0.3));
+v.push((8,3.9));
+v.push((4,4.2));
+v.push((1,4));
+
+pair[] h;
+h.push((1,1)); 
+h.push((5,2));
+h.push((4,3.6));
+h.push((1.2,3));
+
+path p = buildPath(v);
+
+path ph = buildPath(h);
+
+draw(p,linewidth(.4mm));
+
+fill(p,gray(.85));
+
+draw(ph,linewidth(.4mm));
+
+fill(ph,gray(.5)); 
+
+dot(v, linewidth(5));
+dot(h, linewidth(5));
+
+path e11 = calculateIncidentEdge(v[0],v[1],v[2],v[3],0.2,0.9,0.3,0.2);
+draw(Label("$\vec{e}_{1,1}$",align=N),e11,Arrow);
+
+path e12 = calculateOuterIncidentEdge(h[1],h[0],h[3],h[2],-0.1,-0.35,-0.1,-0.4);
+draw(Label("$\vec{e}_{1,2}$",align=S),e12,Arrow);
+
+draw(L=Label("$f_1$", position=Relative(0)),(6,1){up}..{left}(3.3,1.15),Arrow);
+draw((6,1){up}..{left}(3.9,.65),Arrow);
+
+
+path e21 = calculateIncidentEdge(h[0],h[1],h[2],h[3],0.1,0.5,0.3,0.2);
+draw(Label("$\vec{e}_{2,1}$",align=N),e21,Arrow);
+
+draw(L=Label("$f_2$", position=Relative(0)),(3.8,2.8){down}..{left}(3.2,2),Arrow);
+
+\end{asy}
+
+In obigem Beispiel speichert $f_1$ $\vec{e}_{1,1}$ als Halbkante des äußeren Kantenzugs. Die Menge der Halbkanten, die die Löcher  von $f_1$ repräsentieren  enthalten genau eine Halbkante, nämlich $\vec{e}_{1,2}$. $f_2$ ist durch die Kante $\vec{e}_{2,1}$ im äußeren Kantenzug definiert.
+
+Zu einem Knoten wird eine anliegende Kante gespeichert. Anzumerken ist, das hier eine Kante genügt, da alle anderen anliegenden Kanten folgendermaßen erreicht werden:
+
+Sei $\vec{e}$ die anliegende Kante des Punktes $v$. 
+
+\begin{asy}
+settings.outformat="pdf";
+size(10cm,10cm);
+
+settings.render=0;
+import three;
+
+
+pair v = (0,0);
+
+pair[] rest;
+rest.push((-2,-4));
+rest.push((5,3));
+rest.push((-4,3.2));
+
+
+
+
+path e = calculateIncidentEdge(rest[2],v,rest[0],rest[2],0.1,0.3,0.3,0.15);
+draw(Label("$\vec{e}$",align=SW),e,BeginArrow);
+
+path e = calculateIncidentEdge(rest[2],v,rest[1],rest[2],0.5,0.2,0.4,0.2);
+draw(Label("$\vec{e}.getTwin()$",align=NE),e,Arrow);
+
+path e = calculateIncidentEdge(rest[1],v,rest[2],rest[1],0.5,0.2,0.4,0.2);
+draw(Label("$\vec{e}$.getTwin().getNext()",align=SE),e,BeginArrow);
+
+for(pair r : rest)
+	draw(v--r,linewidth(.4mm));
+
+dot(v, linewidth(5));
+
+\end{asy}
 
 
 
 
 \subsubsection{Anwendungsbeispiel}
 \subsubsection{Definition: Dcel}
+
+Wie in Kapitel \ref{Inhalt_Dcel} beschrieben, besteht eine DCEL aus einer Menge von Knoten, Halbkanten und Flächen. Diese werden im Folgenden definiert.
+
+Eine \textbf{Halbkante} enthält:
+\begin{itemize}
+\item[] Startknoten
+\item[] Zwillingskante
+\item[] Nachfolge-Kante
+\item[] Vorgänger-Kante
+\item[] Fläche die links zur Halbkante liegt
+\end{itemize}
+
+Eine \textbf{Fläche} enthält:
+\begin{itemize}
+\item[] eine Kante von der aus die Fläche \textit{links} liegt.
+\item[] eine Menge von Kanten zu denen die Fläche \textit{rechts} liegt; Diese reprsäntieren die Löcher der Fläche
+\end{itemize}
+
+Ein \textbf{Knoten} enthält:
+\begin{itemize}
+\item[] eine anliegende Halbkante mit dem Knoten als Startpunkt
+\item[] die Raumkoordinaten des Punktes, den er repräsentiert
+\end{itemize}
+
+Außerdem können Knoten, Kanten und Flächen zusätzliche Informationen enthalten. Wenn eine DCEL beispielsweise eine Straßennetze darstellt, könnte man zusätzlich zu einer Kante, die in diesem Kontext eine Straße ist, das Tempolimit und den Typ der Straße (Feldweg, Landstraße, Autobahn, ...) speichern.
+
+
 \subsubsection{Vorteile für die Triangulation}
+
+Der Speicheraufwand einer DCEL ist linear in der Komplexität des Graphen. Zu jedem Knoten und jeder Kante wird immer eine feste Anzahl an Referenzen gespeichert. Nur eine Fläche enthält eine Menge an Löchern, deren Größe nicht exakt bestimmt werden kann. Da ein Loch aber immer genau einer Fläche zugeordnet ist, können wir sagen, dass diese Menge durch die Komplexität des Graphen beschränkt ist. Sei nun $|f|$ die Anzahl der Flächen, $|v|$ die Anzahl der Knoten und $|\vec{e}|$ die Anzahl der Kanten einer DCEL. Somit hat diese einen Speicheraufwand von $O(|f|+|v|+|\vec{e}|)$. Bei der Triangulation großer Graphen ist dies ein wichtiger Vorteil.
+
+// TODO warum besser als andere Datenstrukturen
+
 \subsubsection{Implementierung einer Dcel}
 mit Klassendiagramm, Sequenzdiagramm, etc.
 
